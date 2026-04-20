@@ -8,14 +8,17 @@ export interface RestaurantTable {
 
 export interface MenuCategory {
   id: string;
-  name: string;
+  name: string; // IT
+  name_en?: string; // EN
 }
 
 export interface MenuItem {
   id: string;
   category_id: string;
-  name: string;
-  description: string | null;
+  name: string; // IT
+  name_en?: string; // EN
+  description: string | null; // IT
+  description_en?: string | null; // EN
   price: number;
   is_top: boolean;
 }
@@ -36,4 +39,11 @@ export interface OrderItem {
   menu_item_id: string;
   quantity: number;
   price: number;
+}
+
+export interface Payment {
+  id: string;
+  table_id: string;
+  amount: number;
+  created_at: string;
 }
