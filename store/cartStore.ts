@@ -21,17 +21,25 @@ interface CartState {
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   isCartOpen: false,
-  isHydrated: false, // Partiamo dicendo che non abbiamo ancora caricato i dati locali
+  isHydrated: false,
   
   toggleCart: () => set((state) => ({ isCartOpen: !state.isCartOpen })),
   
-  // Funzione per caricare i dati dal browser in sicurezza
+  // Carica il carrello salvato nel browser in modo sicuro
   hydrateCart: () => {
-    const savedCart = localStorage.getItem('restaurantCart')
-    if (savedCart) {
-      set({ items: JSON.parse(savedCart), isHydrated: true })
-    } else {
-      set({ isHydrated: true })
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('restaurantCart')
+      if (savedCart) {
+        try {
+          set({ items: JSON.parse(savedCart), isHydrated: true })
+        } catch (error) {
+          console.error("Errore lettura carrello:", error)
+          localStorage.removeItem('restaurantCart') // Resetta se corrotto
+          set({ isHydrated: true })
+        }
+      } else {
+        set({ isHydrated: true })
+      }
     }
   },
 
@@ -44,6 +52,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         )
       } else {
+        // Salva l'intero oggetto MenuItem (include traduzioni e image_url)
         newItems = [...state.items, { ...item, quantity: 1 }]
       }
       if (state.isHydrated) localStorage.setItem('restaurantCart', JSON.stringify(newItems))
@@ -55,7 +64,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     set((state) => {
       const newItems = state.items.reduce((acc, item) => {
         if (item.id === itemId) {
-          if (item.quantity === 1) return acc
+          if (item.quantity === 1) return acc // Rimuove completamente
           return [...acc, { ...item, quantity: item.quantity - 1 }]
         }
         return [...acc, item]
